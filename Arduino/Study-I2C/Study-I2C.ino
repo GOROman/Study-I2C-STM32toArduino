@@ -15,9 +15,9 @@ void setup() {
 }
 
 void loop() {
-  uint8_t err = 0;
   // put your main code here, to run repeatedly:
-  uint8_t data[] = {0,1,2,3,4,5};
+  uint8_t data[] = {0,1,2,3,4,5,6};
+
   Wire.beginTransmission(I2C_ADDR);
 
   int sentBytes = 0;
@@ -26,11 +26,28 @@ void loop() {
     sentBytes += Wire.write(data[i]);
   }
 
-  err = Wire.endTransmission();
-  if ( err != 0 ) {
-    Serial.printf("I2C: Error endTransmission = %d\n", err );
-  } else {
-    Serial.printf("I2C: OK! %dbytes\n", sentBytes);
-  }
+  uint8_t err = Wire.endTransmission();
+  switch(err) {
+    case 0:
+      Serial.printf("I2C: OK! %dbytes\n", sentBytes);
+    break;
+    case 1:
+      Serial.printf("I2C: Error(%d) data too long to fit in transmit buffer.\n", err );
+    break;
+    case 2:
+      Serial.printf("I2C: Error(%d) received NACK on transmit of address.\n", err );
+    break;
+    case 3:
+      Serial.printf("I2C: Error(%d) received NACK on transmit of data.\n", err );
+    break;
+    case 4:
+      Serial.printf("I2C: Error(%d) other error.\n", err );
+    break;
+    case 5:
+      Serial.printf("I2C: Error(%d) timeout.\n", err );
+    break;
+    default:
+      Serial.printf("I2C: Error(%d) unknown error.\n", err );
+  }      
   delay(500);
 }
