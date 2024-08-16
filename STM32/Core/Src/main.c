@@ -92,6 +92,11 @@ int main(void)
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 
+  // マスターからの受信リクエストを有効化する
+  if ( HAL_I2C_EnableListen_IT(&hi2c1) != HAL_OK ) {
+	  Error_Handler();
+  }
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
