@@ -50,4 +50,12 @@ void loop() {
       Serial.printf("I2C: Error(%d) unknown error.\n", err );
   }      
   delay(500);
+  int length = Wire.requestFrom(I2C_ADDR, 3);
+  Serial.printf("Wire.requestFrom() = %d\n", length);
+
+  for (int i=0;i<length;++i) {
+    byte data = Wire.read();
+    Serial.printf(">>[%d] -> %02x\n", i, data);
+  }
+  delay(500);
 }

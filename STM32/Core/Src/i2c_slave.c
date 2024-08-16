@@ -13,7 +13,10 @@ extern I2C_HandleTypeDef hi2c1; // (from main.c)
 
 #define RxSIZE 11
 uint8_t RxData[RxSIZE];
-uint8_t countRx = 0;
+uint8_t TxData[] = {1,2,3,4,5,6};
+
+uint8_t countRx = 0;	// 受信カウンタ
+uint8_t countTx = 0;	// 送信カウンタ
 
 int countAddr	= 0;	// アドレスが呼ばれた回数
 int countRxcplt = 0;	// 受信が完了した回数
@@ -83,7 +86,8 @@ void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, ui
 			countRx = 0;
 			HAL_I2C_Slave_Seq_Receive_IT(hi2c, RxData+countRx, 1, I2C_FIRST_FRAME);
 	} else {
-		Error_Handler();
+		countTx = 0;
+		HAL_I2C_Slave_Seq_Transmit_IT(hi2c, TxData+countTx, 1, I2C_FIRST_FRAME);
 	}
 }
 
@@ -113,6 +117,12 @@ void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
 	countRxcplt++;
 }
 
+void HAL_I2C_SlaveTxCpltCallback(I2C_HandleTypeDef *hi2c)
+{
+	countTx++;
+	HAL_I2C_Slave_Seq_Transmit_IT(hi2c, TxData+countTx, 1, I2C_NEXT_FRAME);
+
+}
 /*
  * @brief  I2C error callback.
  * @param  hi2c Pointer to a I2C_HandleTypeDef structure that contains
