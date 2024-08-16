@@ -11,11 +11,12 @@
 
 extern I2C_HandleTypeDef hi2c1; // (from main.c)
 
-#define RxSIZE	6
+#define RxSIZE	8
 uint8_t RxData[RxSIZE];
 
 int count = 0;
 int errorCount = 0;
+int rxCount = 0;
 
 /**
   * @brief  Listen Complete callback.
@@ -56,8 +57,9 @@ void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, ui
 		  * @retval HAL status
 		  */
 
-			// 受信開始する
-			HAL_I2C_Slave_Seq_Receive_IT(hi2c, RxData, RxSIZE, I2C_FIRST_AND_LAST_FRAME);
+			// 最初のフレームを受信開始する
+			rxCount = 0;
+			HAL_I2C_Slave_Seq_Receive_IT(hi2c, RxData, 1, I2C_FIRST_FRAME);
 	} else {
 		Error_Handler();
 	}
@@ -75,7 +77,11 @@ void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
 	count++;
 	// GPIOをトグルする(LEDがある前提)
-	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_11); // PA11
+	if ( rxCount == 0 ) {
+		rxCount = 1;
+		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_11); // PA11
+		HAL_I2C_Slave_Seq_Receive_IT(hi2c, RxData+rxCount, 6, I2C_LAST_FRAME);
+	}
 }
 
 /*
