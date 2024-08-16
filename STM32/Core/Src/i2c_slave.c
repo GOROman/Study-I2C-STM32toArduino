@@ -14,6 +14,9 @@ extern I2C_HandleTypeDef hi2c1; // (from main.c)
 #define RxSIZE	6
 uint8_t RxData[RxSIZE];
 
+int count = 0;
+int errorCount = 0;
+
 /**
   * @brief  Listen Complete callback.
   * @param  hi2c Pointer to a I2C_HandleTypeDef structure that contains
@@ -56,6 +59,7 @@ void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, ui
 			// 受信開始する
 			HAL_I2C_Slave_Seq_Receive_IT(hi2c, RxData, RxSIZE, I2C_FIRST_AND_LAST_FRAME);
 	} else {
+		Error_Handler();
 	}
 }
 
@@ -69,6 +73,22 @@ void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, ui
 // [注意] RxSIZE を HAL_I2C_Slave_Seq_Receive_IT で指定しているので RxSIZE分のデータが来ない場合はこのコールバックは呼ばれない
 void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
+	count++;
 	// GPIOをトグルする(LEDがある前提)
 	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_11); // PA11
+}
+
+/*
+ * @brief  I2C error callback.
+ * @param  hi2c Pointer to a I2C_HandleTypeDef structure that contains
+ *                the configuration information for the specified I2C.
+ * @retval None
+*/
+
+void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c)
+{
+	errorCount++;
+
+	// 再びリッスンモードにする
+	HAL_I2C_EnableListen_IT(hi2c);
 }
