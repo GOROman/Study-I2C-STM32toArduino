@@ -16,7 +16,7 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  uint8_t data[] = {3,1,2,3}; // 先頭のバイトが残りのバイト数を意味する
+  uint8_t data[] = {0}; // 先頭のバイトが残りのバイト数を意味する
 
   Wire.beginTransmission(I2C_ADDR);
 
@@ -26,7 +26,7 @@ void loop() {
     sentBytes += Wire.write(data[i]);
   }
 
-  uint8_t err = Wire.endTransmission();
+  uint8_t err = Wire.endTransmission(false);
   switch(err) {
     case 0:
       Serial.printf("I2C: OK! %dbytes\n", sentBytes);

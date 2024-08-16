@@ -13,7 +13,7 @@ extern I2C_HandleTypeDef hi2c1; // (from main.c)
 
 #define RxSIZE 11
 uint8_t RxData[RxSIZE];
-uint8_t TxData[] = {1,2,3,4,5,6};
+uint8_t TxData[] = {0x10,0x11,0x12,0x13,0x14,0x15};
 
 uint8_t countRx = 0;	// 受信カウンタ
 uint8_t countTx = 0;	// 送信カウンタ
@@ -23,6 +23,8 @@ int countRxcplt = 0;	// 受信が完了した回数
 int countError	= 0;	// エラーが発生した回数
 
 uint8_t I2C_REGS[10] = {0};
+
+int startPos = 0;
 
 
 void process_data()
@@ -87,7 +89,8 @@ void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, ui
 			HAL_I2C_Slave_Seq_Receive_IT(hi2c, RxData+countRx, 1, I2C_FIRST_FRAME);
 	} else {
 		countTx = 0;
-		HAL_I2C_Slave_Seq_Transmit_IT(hi2c, TxData+countTx, 1, I2C_FIRST_FRAME);
+		startPos = RxData[0];
+		HAL_I2C_Slave_Seq_Transmit_IT(hi2c, TxData+startPos+countTx, 1, I2C_FIRST_FRAME);
 	}
 }
 
@@ -120,7 +123,7 @@ void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
 void HAL_I2C_SlaveTxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
 	countTx++;
-	HAL_I2C_Slave_Seq_Transmit_IT(hi2c, TxData+countTx, 1, I2C_NEXT_FRAME);
+	HAL_I2C_Slave_Seq_Transmit_IT(hi2c, TxData+startPos+countTx, 1, I2C_NEXT_FRAME);
 
 }
 /*
@@ -134,8 +137,15 @@ void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c)
 {
 	countError++;
 	uint32_t errorcode = HAL_I2C_GetError(hi2c);
+
 	if ( errorcode == 4 ) {// AF Error
-		process_data();
+		__HAL_I2C_CLEAR_FLAG(hi2c, I2C_FLAG_AF);
+		// 受信か？
+		if (countTx == 0 ) {
+			process_data();
+		} else {
+			countTx = countTx - 1;
+		}
 	}
 
 	// 再びリッスンモードにする
