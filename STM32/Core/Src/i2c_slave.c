@@ -141,7 +141,7 @@ void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c)
 	// AF = Acknowledge failure(AF)
 	if ( errorcode == HAL_I2C_ERROR_AF ) {
 		// AFフラグをクリアする
-		__HAL_I2C_CLEAR_FLAG(hi2c, I2C_FLAG_AF);
+//		__HAL_I2C_CLEAR_FLAG(hi2c, I2C_FLAG_AF); // すでにクリアされているので不要
 
 		// 受信か？
 		if (countTx == 0 ) {
