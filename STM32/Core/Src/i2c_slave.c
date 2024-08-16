@@ -138,8 +138,11 @@ void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c)
 	countError++;
 	uint32_t errorcode = HAL_I2C_GetError(hi2c);
 
-	if ( errorcode == 4 ) {// AF Error
+	// AF = Acknowledge failure(AF)
+	if ( errorcode == HAL_I2C_ERROR_AF ) {
+		// AFフラグをクリアする
 		__HAL_I2C_CLEAR_FLAG(hi2c, I2C_FLAG_AF);
+
 		// 受信か？
 		if (countTx == 0 ) {
 			process_data();
