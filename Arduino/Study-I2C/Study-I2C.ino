@@ -16,7 +16,7 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  uint8_t data[] = {1,2,3,4,5,6,7,8};
+  uint8_t data[] = {3,1,2,3}; // 先頭のバイトが残りのバイト数を意味する
 
   Wire.beginTransmission(I2C_ADDR);
 
