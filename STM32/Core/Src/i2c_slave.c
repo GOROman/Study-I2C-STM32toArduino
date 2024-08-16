@@ -11,7 +11,7 @@
 
 extern I2C_HandleTypeDef hi2c1; // (from main.c)
 
-#define RxSIZE	8
+#define RxSIZE 11
 uint8_t RxData[RxSIZE];
 uint8_t countRx = 0;
 
@@ -19,13 +19,23 @@ int countAddr	= 0;	// アドレスが呼ばれた回数
 int countRxcplt = 0;	// 受信が完了した回数
 int countError	= 0;	// エラーが発生した回数
 
-int is_first_recvd = 0;	// 先頭か？
+uint8_t I2C_REGS[10] = {0};
+
 
 void process_data()
 {
 	// GPIOをトグルする(LEDがある前提)
 	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_11); // PA11
 
+	int startREG = RxData[0];
+	int numREG = countRx - 1;
+	int endREG = startREG + numREG -1;
+	if (endREG>9) Error_Handler();
+
+	int idx = 1;
+	for(int i=0; i<numREG;++i ) {
+		I2C_REGS[startREG++] = RxData[idx++];
+	}
 
 }
 
@@ -67,13 +77,11 @@ void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, ui
 		  * @param  XferOptions Options of Transfer, value of @ref I2C_XFEROPTIONS
 		  * @retval HAL status
 		  */
-		if ( is_first_recvd == 0 ) {
-			countRx = 0;
-			HAL_I2C_Slave_Seq_Receive_IT(hi2c, RxData+countRx, 1, I2C_FIRST_FRAME);
-		}
 
 			// 最初のフレームを受信開始する
 			countAddr++;
+			countRx = 0;
+			HAL_I2C_Slave_Seq_Receive_IT(hi2c, RxData+countRx, 1, I2C_FIRST_FRAME);
 	} else {
 		Error_Handler();
 	}
@@ -89,20 +97,19 @@ void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, ui
 // [注意] RxSIZE を HAL_I2C_Slave_Seq_Receive_IT で指定しているので RxSIZE分のデータが来ない場合はこのコールバックは呼ばれない
 void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
-	uint8_t length = RxData[0];
+	countRx++;
+	if (countRx < RxSIZE) {
+		if (countRx == RxSIZE-1) {
+			HAL_I2C_Slave_Seq_Receive_IT(hi2c, RxData+countRx, 1, I2C_LAST_FRAME);
 
-	if ( is_first_recvd == 0 ) {
-		countRx++;
-		is_first_recvd = 1;
-
-		HAL_I2C_Slave_Seq_Receive_IT(hi2c, RxData+countRx, length, I2C_LAST_FRAME);
-	} else {
-		countRx += length;
-		is_first_recvd = 0;
-		process_data();
+		} else {
+			HAL_I2C_Slave_Seq_Receive_IT(hi2c, RxData+countRx, 1, I2C_NEXT_FRAME);
+		}
 
 	}
-
+	if (countRx == RxSIZE) {
+		process_data();
+	}
 	countRxcplt++;
 }
 
