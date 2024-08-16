@@ -59,3 +59,16 @@ void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, ui
 	}
 }
 
+/**
+  * @brief  Slave Rx Transfer completed callback.
+  * @param  hi2c Pointer to a I2C_HandleTypeDef structure that contains
+  *                the configuration information for the specified I2C.
+  * @retval None
+  */
+// 受信完了時に呼ばれるコールバック
+// [注意] RxSIZE を HAL_I2C_Slave_Seq_Receive_IT で指定しているので RxSIZE分のデータが来ない場合はこのコールバックは呼ばれない
+void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
+{
+	// GPIOをトグルする(LEDがある前提)
+	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_11); // PA11
+}
