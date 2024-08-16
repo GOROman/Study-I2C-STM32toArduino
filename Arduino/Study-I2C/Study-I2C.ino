@@ -17,8 +17,15 @@ void setup() {
 void loop() {
   uint8_t err = 0;
   // put your main code here, to run repeatedly:
+  uint8_t data[] = {0,1,2,3,4,5};
   Wire.beginTransmission(I2C_ADDR);
-  int sentBytes = Wire.write(0x10);
+
+  int sentBytes = 0;
+
+  for (int i=0; i<sizeof(data); ++i ) {
+    sentBytes += Wire.write(data[i]);
+  }
+
   err = Wire.endTransmission();
   if ( err != 0 ) {
     Serial.printf("I2C: Error endTransmission = %d\n", err );
