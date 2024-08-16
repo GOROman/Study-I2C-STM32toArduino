@@ -103,6 +103,9 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	// Lチカ
+	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_12); // PA12
+	HAL_Delay(200);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
